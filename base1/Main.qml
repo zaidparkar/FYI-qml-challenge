@@ -69,18 +69,6 @@ Window {
 }
 
 
-
-
-    //    MediaPlayer {
-    //        id: mediaPlayer
-    //        source: "resources/sample.mp4"
-    //    }
-
-    //    VideoOutput {
-    //        id: videoOutput
-    //        anchors.fill: parent
-    //    }
-
     //    Rectangle {
     //        id: controls
     //        width: parent.width
