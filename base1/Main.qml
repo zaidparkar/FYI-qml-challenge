@@ -2,14 +2,15 @@ import QtQuick
 import QtQuick.Window
 import QtMultimedia
 
-Window {
+Window {        // main window of the application
     id: window
     visible: true
     width: 800
     height: 600
     title: "Video Player"
 
-    function handleButtonClick() {
+    // Two helper functions
+    function handleButtonClick() {  // this function handles the play and pause of the video
         if(button.text == 'Play') {
             button.text = 'Pause'
             videoPlayer.play()
@@ -20,7 +21,7 @@ Window {
         }
     }
 
-    function formatTime(time) {
+    function formatTime(time) {  // this function formats the time in ms to display as mm:ss
         var minutes = Math.floor(time / 60000);
         var seconds = Math.trunc(time / 1000);
         return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
@@ -43,54 +44,6 @@ Window {
             id: videoPlayer
             anchors.fill: parent
             source: "qrc:/resources/assets/sample.mp4"
-//            onPositionChanged: {
-//                if (sliderHandle.drag && !sliderHandle.drag.active) {
-//                    sliderPosition = videoPlayer.position;
-//                    sliderHandle.x = (slider.width - sliderHandle.width) * (sliderPosition / videoDuration);
-//                    console.log(sliderHandle.x + "\n" + sliderPosition)
-//                }
-//            }
-        }
-    }
-
-    Rectangle { // background
-        id: progressBar
-
-        // public
-        property double maximum: 10
-        property double value:   currentPosition
-        property double minimum: 0
-
-        // private
-        width: 600;  height: 15 // default size
-
-        anchors.top: player.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 5
-        border.width: 0.05 * progressBar.height
-        radius: 0.3 * height
-
-        Rectangle { // foreground
-            id: foreground
-            visible: progressBar.value > progressBar.minimum
-            x: 0.1 * progressBar.height
-            y: 0.1 * progressBar.height
-            width: 0
-            height: 0.8 * progressBar.height
-            color: 'black'
-            radius: parent.radius
-
-
-        }
-
-        Timer {
-            interval: 50 // Update the progress bar every 100 milliseconds
-            running: true
-            repeat: true
-            onTriggered: {
-                currentPosition = videoPlayer.position
-                foreground.width = (currentPosition/videoDuration) * parent.width
-            }
         }
     }
 
@@ -99,15 +52,24 @@ Window {
         id: slider
         width: (player.width - 60)
         height: 10
-        anchors.top: progressBar.bottom
+        anchors.top: player.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 20
         color: "gray"
+
+
+        Rectangle {
+            id: progress
+            width: (sliderHandle.x + sliderHandle.width / 2)
+            height: slider.height
+            color: "red"
+        }
 
         Rectangle {
             id: sliderHandle
             width: 20
             height: 20
+            radius: 0.5 * sliderHandle.height
             color: "white"
             border.width: 1
             border.color: "black"
@@ -122,19 +84,20 @@ Window {
                 drag.minimumX: 0
                 drag.maximumX: 10
                 onPositionChanged: {
-                    sliderPosition = Math.round(sliderHandle.x / (parent.width - sliderHandle.width) * videoDuration)
-                    videoPlayer.seek(sliderPosition)
+                    sliderHandle.x = mouseX - sliderHandle.width / 2;
+                    videoPlayer.position = sliderHandle.x / slider.width * videoPlayer.duration;
                 }
             }
 
             Timer {
-                interval: 50 // Update the progress bar every 100 milliseconds
+                interval: 50 // Update the text on the slider, the progress bar and the sliderhandle every 50 milliseconds
                 running: true
                 repeat: true
                 onTriggered: {
                     currentPosition = videoPlayer.position
                     sliderHandle.x = (currentPosition/videoDuration) * slider.width
                     sliderText.text = formatTime(currentPosition)
+                    progress.width = sliderHandle.x + sliderHandle.width / 2
                 }
             }
         }
@@ -145,27 +108,25 @@ Window {
             font.pixelSize: 12
             color: "black"
             anchors.bottom: parent.top
+            anchors.bottomMargin: 2
             anchors.horizontalCenter: sliderHandle.horizontalCenter
             visible: true
         }
-
     }
-
 
 
     Rectangle {
 
         id: button
 
-        // public
         property string text: 'Play'
 
         // private
-        width: 50;  height: 30 // default size
-        border.color: text? 'black': 'transparent' // Keyboard
+        width: 50;  height: 30
+        border.color: text? 'black': 'transparent'
         border.width: 0.05 * button.height
-        radius:       0.2  * button.height
-        opacity:      enabled  &&  !mouseArea.pressed? 1: 0.3 // disabled/pressed state
+        radius: 0.2 * button.height
+        opacity: enabled  &&  !mouseArea.pressed? 1: 0.5
         anchors.top: slider.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 5
@@ -184,139 +145,3 @@ Window {
         }
     }
 }
-
-
-//    Rectangle {
-//        id: controls
-//        width: parent.width
-//        height: 50
-//        color: "#333333"
-//        anchors.bottom: parent.bottom
-
-//        Row {
-//            spacing: 10
-
-//            Rectangle {
-//                id: playButton
-//                width: 30
-//                height: 30
-//                color: "#555555"
-//                border.color: "#aaaaaa"
-//                border.width: 1
-//                radius: 5
-//                MouseArea {
-//                    anchors.fill: parent
-//                    onClicked: {
-//                        mediaPlayer.playbackState == MediaPlayer.PlayingState ? mediaPlayer.pause() : mediaPlayer.play()
-//                    }
-//                    onEntered: {
-//                        cursorShape = Qt.PointingHandCursor
-//                    }
-//                    onExited: {
-//                        cursorShape = Qt.ArrowCursor
-//                    }
-//                }
-//                Image {
-//                    source: mediaPlayer.playbackState == MediaPlayer.PlayingState ? "qrc:/pause.png" : "qrc:/play.png"
-//                    anchors.centerIn: parent
-//                }
-//            }
-
-//            Rectangle {
-//                width: parent.width - playButton.width - pauseButton.width - 50
-//                height: 20
-//                color: "#666666"
-//                MouseArea {
-//                    anchors.fill: parent
-//                    property real sliderWidth: 20
-//                    property real sliderHalfWidth: sliderWidth / 2
-//                    onPositionChanged: {
-//                        var xPos = Math.min(Math.max(mouseX - sliderHalfWidth, 0), parent.width - sliderWidth);
-//                        mediaPlayer.position = (xPos / (parent.width - sliderWidth)) * mediaPlayer.duration;
-//                    }
-//                    onReleased: {
-//                        mediaPlayer.play()
-//                    }
-//                    onEntered: {
-//                        cursorShape = Qt.PointingHandCursor
-//                    }
-//                    onExited: {
-//                        cursorShape = Qt.ArrowCursor
-//                    }
-
-//                    Rectangle {
-//                        id: progressSlider
-//                        height: parent.height
-//                        color: "white"
-//                        width: Math.min(mediaPlayer.position / mediaPlayer.duration * parent.width, parent.width)
-//                        MouseArea {
-//                            anchors.fill: parent
-//                            drag.target: progressSlider
-//                            drag.axis: Drag.XAxis
-//                            drag.minimumX: 0
-//                            drag.maximumX: parent.width - progressSlider.width
-//                            onPositionChanged: {
-//                                mediaPlayer.position = (x / (parent.width - progressSlider.width)) * mediaPlayer.duration;
-//                            }
-//                            onReleased: {
-//                                mediaPlayer.play()
-//                            }
-//                            onEntered: {
-//                                cursorShape = Qt.PointingHandCursor
-//                            }
-//                            onExited: {
-//                                cursorShape = Qt.ArrowCursor
-//                            }
-
-//                            Rectangle {
-//                                id: slider
-//                                width: parent.height
-//                                height: parent.height
-//                                color: "#555555"
-//                                border.color: "#aaaaaa"
-//                                border.width: 1
-//                                anchors.verticalCenter: parent.verticalCenter
-//                                anchors.left: parent.left
-//                                anchors.leftMargin: 1
-//                                anchors.right: progressSlider.left
-//                                anchors.rightMargin: 1
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-
-//            Rectangle {
-//                id: pauseButton
-//                width: 30
-//                height: 30
-//                color: "#555555"
-//                border.color: "#aaaaaa"
-//                border.width: 1
-//                radius: 5
-//                MouseArea {
-//                    anchors.fill: parent
-//                    onClicked: {
-//                        mediaPlayer.pause()
-//                    }
-//                    onEntered: {
-//                        cursorShape = Qt.PointingHandCursor
-//                    }
-//                    onExited: {
-//                        cursorShape = Qt.ArrowCursor
-//                    }
-//                }
-//                Image {
-//                    source: "qrc:/pause.png"
-//                    anchors.centerIn: parent
-//                }
-//            }
-//           }
-//    }
-//}
-
-
-
-
-
-
