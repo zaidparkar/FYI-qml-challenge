@@ -21,8 +21,8 @@ Window {
     }
 
     function formatTime(time) {
-        var minutes = Math.floor(time / 60);
-        var seconds = time % 60;
+        var minutes = Math.floor(time / 60000);
+        var seconds = Math.trunc(time / 1000);
         return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     }
 
@@ -52,50 +52,6 @@ Window {
 //            }
         }
     }
-
-//    Rectangle {
-//        id: slider
-//        width: (player.width - 60)
-//        height: 10
-//        anchors.top: player.bottom
-//        anchors.horizontalCenter: parent.horizontalCenter
-//        anchors.topMargin: 20
-//        color: "gray"
-
-//        Rectangle {
-//            id: sliderHandle
-//            width: 20
-//            height: 20
-//            color: "white"
-//            border.width: 1
-//            border.color: "black"
-//            anchors.verticalCenter: parent.verticalCenter
-//            x: (parent.width - width) * (sliderPosition / videoDuration)
-
-//            MouseArea {
-//                id: drag
-//                anchors.fill: parent
-//                drag.target: sliderHandle
-//                drag.axis: Drag.XAxis
-//                drag.minimumX: 0
-//                drag.maximumX: slider.width - sliderHandle.width
-//                onPositionChanged: {
-//                    sliderPosition = Math.round(sliderHandle.x / (parent.width - sliderHandle.width) * videoDuration)
-//                    videoPlayer.seek(sliderPosition)
-//                }
-//            }
-//        }
-
-//        Text {
-//            text: formatTime(sliderPosition)
-//            font.pixelSize: 12
-//            color: "black"
-//            anchors.bottom: parent.top
-//            anchors.horizontalCenter: sliderHandle.horizontalCenter
-//            visible: true
-//        }
-
-//    }
 
     Rectangle { // background
         id: progressBar
@@ -140,6 +96,64 @@ Window {
 
 
     Rectangle {
+        id: slider
+        width: (player.width - 60)
+        height: 10
+        anchors.top: progressBar.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 20
+        color: "gray"
+
+        Rectangle {
+            id: sliderHandle
+            width: 20
+            height: 20
+            color: "white"
+            border.width: 1
+            border.color: "black"
+            anchors.verticalCenter: parent.verticalCenter
+            x: (parent.width - width) * (sliderPosition / videoDuration)
+
+            MouseArea {
+                id: drag
+                anchors.fill: parent
+                drag.target: sliderHandle
+                drag.axis: Drag.XAxis
+                drag.minimumX: 0
+                drag.maximumX: 10
+                onPositionChanged: {
+                    sliderPosition = Math.round(sliderHandle.x / (parent.width - sliderHandle.width) * videoDuration)
+                    videoPlayer.seek(sliderPosition)
+                }
+            }
+
+            Timer {
+                interval: 50 // Update the progress bar every 100 milliseconds
+                running: true
+                repeat: true
+                onTriggered: {
+                    currentPosition = videoPlayer.position
+                    sliderHandle.x = (currentPosition/videoDuration) * slider.width
+                    sliderText.text = formatTime(currentPosition)
+                }
+            }
+        }
+
+        Text {
+            id: sliderText
+            text: formatTime(sliderPosition)
+            font.pixelSize: 12
+            color: "black"
+            anchors.bottom: parent.top
+            anchors.horizontalCenter: sliderHandle.horizontalCenter
+            visible: true
+        }
+
+    }
+
+
+
+    Rectangle {
 
         id: button
 
@@ -152,7 +166,7 @@ Window {
         border.width: 0.05 * button.height
         radius:       0.2  * button.height
         opacity:      enabled  &&  !mouseArea.pressed? 1: 0.3 // disabled/pressed state
-        anchors.top: progressBar.bottom
+        anchors.top: slider.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 5
 
