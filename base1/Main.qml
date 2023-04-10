@@ -17,14 +17,14 @@ Window {        // main window of the application
 
     function showMessage(p1,p2) {
         messageDialog.title = p1;
-        messageDialog.text = p2;
+        messageText.text = p2
         messageDialog.visible = true;
     }
 
 
     function handleplayButtonClick() {  // this function handles the play and pause of the video
         if(playButton.text == 'Play') {
-            if(!videoPlayer.source) {
+            if(videoPlayer.source != '') {
                 playButton.text = 'Pause'
                 videoPlayer.play()
             }
@@ -51,20 +51,62 @@ Window {        // main window of the application
     FileDialog {
         id: fileDialog
         title: "Open Video"
-        currentFolder: Qt.resolvedUrl(".")
-        nameFilters: [ "Video files (*.mp4)", "All files (*)" ]
+        nameFilters: [ "Video files (*.mp4 *.avi *.mkv *.mov)" ]
         onAccepted: {
             var filePath = fileDialog.selectedFile
-            if (filePath !== '') {
-                videoPlayer.source = filePath
-            }
+            videoPlayer.source = filePath
         }
     }
 
-    MessageDialog {
+    Window {
         id: messageDialog
         title: "Alert"
-        onAccepted: visible = false
+        width: 300
+        height: 150
+        visible: false
+
+        Rectangle {
+            id: messageBox
+            width: 0.6 * parent.width
+            height: 0.4 * parent.height
+
+            anchors.centerIn: parent
+            Text {
+                id: messageText
+                font.pixelSize: 0.3 * parent.height
+                text: qsTr("text")
+                anchors.centerIn: parent
+            }
+        }
+
+        Rectangle {
+
+            id: acknowledge
+
+            width: 50;
+            height: 30
+            anchors.top: messageBox.bottom
+
+            border.width: 0.05 * acknowledge.height
+
+            radius: 0.2 * acknowledge.height
+            opacity: enabled  &&  !messageBoxMouseArea.pressed? 1: 0.5
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Text {
+                text: "Ok"
+                font.pixelSize: 0.4 * acknowledge.height
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                id: messageBoxMouseArea
+                anchors.fill: parent
+                onClicked: messageDialog.visible = false
+            }
+
+        }
+
     }
 
     Rectangle {
@@ -174,7 +216,7 @@ Window {        // main window of the application
             border.width: 0.05 * playButton.height
 
             radius: 0.2 * playButton.height
-            opacity: enabled  &&  !mouseArea.pressed? 1: 0.5
+            opacity: enabled  &&  !playButtonMouseArea.pressed? 1: 0.5
             anchors.left: fileButton.right
             anchors.leftMargin: 5
 
@@ -185,7 +227,7 @@ Window {        // main window of the application
             }
 
             MouseArea {
-                id: mouseArea
+                id: playButtonMouseArea
                 anchors.fill: parent
                 onClicked: handleplayButtonClick();
             }
@@ -204,7 +246,7 @@ Window {        // main window of the application
             border.color: text? 'black': 'transparent'
             border.width: 0.05 * fileButton.height
             radius: 0.2 * fileButton.height
-            opacity: enabled  &&  !mouseArea.pressed? 1: 0.5
+            opacity: enabled  &&  !fileButtonMouseArea.pressed? 1: 0.5
 
             Text {
                 text: fileButton.text
@@ -215,7 +257,11 @@ Window {        // main window of the application
             MouseArea {
                 id: fileButtonMouseArea
                 anchors.fill: parent
-                onClicked: fileDialog.open()
+                onClicked: {
+                    fileDialog.currentFolder = Qt.resolvedUrl(".")
+                    fileDialog.open()
+                }
+
             }
         }
     }

@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/resources">
-        <file>assets/sample.mp4</file>
         <file>assets/icon.png</file>
     </qresource>
 </RCC>
